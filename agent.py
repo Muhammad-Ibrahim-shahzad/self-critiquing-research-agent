@@ -1,3 +1,4 @@
+from langgraph.graph import StateGraph, END
 from tavily import TavilyClient
 from dotenv import load_dotenv
 from typing import TypedDict
@@ -99,7 +100,8 @@ def critique_node(state: ResearchState) -> dict:
     return {
         "verdict": critique_dict["verdict"],
         "reason": critique_dict["reason"],
-        "query": critique_dict["ref_query"] if critique_dict["ref_query"] else state["query"]
+        "query": critique_dict["ref_query"] if critique_dict["ref_query"] else state["query"],
+        "retry_count": state["retry_count"] + 1
     }
 
 def should_retry(state: ResearchState) -> str:
@@ -108,3 +110,36 @@ def should_retry(state: ResearchState) -> str:
         return  "retry"
     else:
         return "done"
+    
+graph = StateGraph(ResearchState)
+
+#nodes
+graph.add_node("research_node", research_node)
+graph.add_node("draft_node", draft_node)
+graph.add_node("critique_node", critique_node)
+
+#edges
+graph.set_entry_point("research_node")
+graph.add_edge("research_node", "draft_node")
+graph.add_edge("draft_node", "critique_node")
+graph.add_conditional_edges(
+    "critique_node",
+    should_retry,
+    {
+        "retry": "research_node",
+        "done": END
+    }
+)
+
+app = graph.compile()
+initial_state = {
+    "query": input("What do you want to search? "),
+    "search": [],
+    "answer": "",
+    "verdict": "",
+    "reason": "",
+    "retry_count": 0
+}
+
+result = app.invoke(initial_state)
+print(result["answer"])
