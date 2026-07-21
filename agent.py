@@ -141,5 +141,11 @@ initial_state = {
     "retry_count": 0
 }
 
-result = app.invoke(initial_state)
-print(result["answer"])
+accumulated_state = initial_state.copy()
+
+for step in app.stream(initial_state):
+    print(step)
+    for node_name, node_output in step.items():
+        accumulated_state.update(node_output)
+
+print(f"\n\n{accumulated_state['answer']}")
