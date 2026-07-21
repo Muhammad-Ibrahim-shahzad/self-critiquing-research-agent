@@ -72,3 +72,10 @@ def critique_node(state: ResearchState) -> dict:
         "reason": critique_dict["reason"],
         "query": critique_dict["ref_query"] if critique_dict["ref_query"] else state["query"]
     }
+
+def should_retry(state: ResearchState) -> str:
+
+    if state["verdict"] == "NEEDS_IMPROVEMENT" and state["retry_count"] < 2:
+        return  "retry"
+    else:
+        return "done"
