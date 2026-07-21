@@ -1,3 +1,4 @@
+from tavily import TavilyClient
 from dotenv import load_dotenv
 from typing import TypedDict
 from groq import Groq
@@ -6,6 +7,8 @@ import os
 
 load_dotenv()
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+tavily_client = TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
 
 class ResearchState(TypedDict):
     query: str
@@ -43,6 +46,32 @@ Example 2:
    "ref_query": null
 } 
 """
+
+def research_node(state: ResearchState) -> dict:
+
+    query = state["query"]
+    search_results = tavily_client.search(query=query)
+    results = search_results["results"]
+    return {"search": results}
+
+def draft_node(state: ResearchState) -> dict:
+
+    draft_system_prompt="""
+    You are a research assistant, answer the question using the search results below.
+    """
+    messages = [
+        {"role": "system",
+         "content": draft_system_prompt},
+        {"role": "user",
+         "content": f"Search results: {state['search']}\n\nOriginal Query: {state['query']}"}
+    ]
+
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=messages
+    )
+    answer = response.choices[0].message.content
+    return {"answer": answer}
 
 def critique_node(state: ResearchState) -> dict:
     
