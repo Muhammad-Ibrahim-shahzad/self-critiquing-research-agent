@@ -67,6 +67,45 @@ Standard RAG pipelines retrieve once and generate once, with no mechanism to cat
 
 The agent researched current conditions, drafted an answer, then caught itself citing a 10-day forecast that wasn't actually in the search results — flagged it as `NEEDS_IMPROVEMENT`, refined the query to `"10-day weather forecast for Lahore"`, and retried with better-grounded results.
 
+## Live Deployment
+
+This agent is deployed and publicly accessible via HTTPS on Railway:
+
+```
+POST https://self-critiquing-research-agent-production.up.railway.app/research
+```
+
+**Request body:**
+```json
+{
+  "query": "What is the capital of Pakistan?"
+}
+```
+
+**Response:**
+```json
+{
+  "answer": "The capital of Pakistan is Islamabad."
+}
+```
+
+Interactive API docs (Swagger UI) are available at [self-critiquing-research-agent-production.up.railway.app/docs](https://self-critiquing-research-agent-production.up.railway.app/docs) — you can test the endpoint directly from the browser without writing any code.
+
+### Deploying your own copy
+
+1. Push this repo to your own GitHub account.
+2. Create a new project on [Railway](https://railway.app) (or [Render](https://render.com)) and connect it to your GitHub repo.
+3. Set the **start command**:
+   ```
+   uvicorn main:api --host 0.0.0.0 --port $PORT
+   ```
+4. Add two environment variables in the platform's dashboard (not in a committed `.env` file):
+   - `GROQ_API_KEY`
+   - `TAVILY_API_KEY`
+5. Generate a public domain from the platform's networking settings.
+
+**Note:** This endpoint currently has no authentication or rate limiting — anyone with the URL can call it and consume your API quota. Adding basic API-key auth is on the roadmap below.
+
 ## Design notes
 
 - **Structured LLM output**: The critique step forces the LLM to respond in strict JSON (`verdict`, `reason`, `ref_query`) rather than free text — free-text critiques are unreliable to parse programmatically (e.g., "doesn't need improvement" still contains the substring "needs improvement"). A closed set of verdict values makes the retry decision deterministic.
@@ -75,10 +114,12 @@ The agent researched current conditions, drafted an answer, then caught itself c
 
 ## Roadmap / Possible extensions
 
-- [ ] Wrap as a FastAPI service for HTTP access
+- [x] Wrap as a FastAPI service for HTTP access
+- [x] Deploy publicly (Railway, HTTPS)
+- [ ] Basic API-key auth / rate-limiting for client-facing deployment
 - [ ] Add structured logging/tracing for each loop iteration
 - [ ] Surface retry history and final confidence in the response, not just the answer text
-- [ ] Basic API-key auth for client-facing deployment
+- [ ] Evaluation framework to measure answer quality across many queries
 
 ## Author
 
