@@ -2,3 +2,5 @@ groq
 langgraph
 tavily-python
 python-dotenv
+fastapi
+uvicorn
