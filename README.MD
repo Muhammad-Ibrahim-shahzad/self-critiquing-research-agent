@@ -75,6 +75,12 @@ This agent is deployed and publicly accessible via HTTPS on Railway:
 POST https://self-critiquing-research-agent-production.up.railway.app/research
 ```
 
+**Authentication:** This endpoint requires an API key, sent as a request header:
+```
+X-API-Key: your_api_key_here
+```
+Requests without a valid key receive a `401 Unauthorized` response. (If you're testing this yourself, request access to the key or generate your own and set it as `AGENT_API_KEY` in your deployment's environment variables.)
+
 **Request body:**
 ```json
 {
@@ -89,7 +95,7 @@ POST https://self-critiquing-research-agent-production.up.railway.app/research
 }
 ```
 
-Interactive API docs (Swagger UI) are available at [self-critiquing-research-agent-production.up.railway.app/docs](https://self-critiquing-research-agent-production.up.railway.app/docs) — you can test the endpoint directly from the browser without writing any code.
+Interactive API docs (Swagger UI) are available at [self-critiquing-research-agent-production.up.railway.app/docs](https://self-critiquing-research-agent-production.up.railway.app/docs) — you can test the endpoint directly from the browser (the docs page includes a field to enter your API key).
 
 ### Deploying your own copy
 
@@ -116,7 +122,8 @@ Interactive API docs (Swagger UI) are available at [self-critiquing-research-age
 
 - [x] Wrap as a FastAPI service for HTTP access
 - [x] Deploy publicly (Railway, HTTPS)
-- [ ] Basic API-key auth / rate-limiting for client-facing deployment
+- [x] Basic API-key auth for client-facing deployment
+- [ ] Rate limiting (protect against a valid-key client sending excessive requests)
 - [ ] Add structured logging/tracing for each loop iteration
 - [ ] Surface retry history and final confidence in the response, not just the answer text
 - [ ] Evaluation framework to measure answer quality across many queries
