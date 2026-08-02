@@ -74,6 +74,21 @@ def draft_node(state: ResearchState) -> dict:
     answer = response.choices[0].message.content
     return {"answer": answer}
 
+#separation of concerns
+
+def merge_query(ref_query, current_query): #helper function
+    return ref_query if ref_query else current_query
+
+def parse_critique(raw_text, current_query): #helper function
+    try:
+        return json.loads(raw_text)
+    except json.JSONDecodeError:
+        return {
+            "verdict": "NEEDS_IMPROVEMENT",
+            "reason": "Critique response was not valid JSON",
+            "ref_query": current_query
+        }
+
 def critique_node(state: ResearchState) -> dict:
     
     messages = [
@@ -88,19 +103,12 @@ def critique_node(state: ResearchState) -> dict:
 
     raw_text = response.choices[0].message.content
 
-    try:
-        critique_dict = json.loads(raw_text)
-    except json.JSONDecodeError:
-        critique_dict = {
-            "verdict": "NEEDS_IMPROVEMENT",
-            "reason": "Critique response was not valid JSON",
-            "ref_query": state["query"]
-        }
+    critique_dict = parse_critique(raw_text, state["query"])
 
     return {
         "verdict": critique_dict["verdict"],
         "reason": critique_dict["reason"],
-        "query": critique_dict["ref_query"] if critique_dict["ref_query"] else state["query"],
+        "query": merge_query(critique_dict["ref_query"], state["query"]),
         "retry_count": state["retry_count"] + 1
     }
 
