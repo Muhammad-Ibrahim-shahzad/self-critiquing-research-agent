@@ -74,7 +74,7 @@ def draft_node(state: ResearchState) -> dict:
     answer = response.choices[0].message.content
     return {"answer": answer}
 
-#separation of concerns
+#separation of concerns(merge_query, parse_critique)
 
 def merge_query(ref_query, current_query): #helper function
     return ref_query if ref_query else current_query
