@@ -80,8 +80,13 @@ def draft_node(state: ResearchState) -> dict:
     )
     answer = response.choices[0].message.content
 
+    input_cost = (response.usage.prompt_tokens/1_000_000)*0.59
+    output_cost = (response.usage.completion_tokens/1_000_000)*0.79
+    total_cost = input_cost + output_cost
+
     end = time.time()
-    print(f"Time taken by draft node: {end - start}")
+    print(f"Time taken by Draft node: {end - start}")
+    print(f"Cost of Draft node: ${total_cost:.6f}")
 
     return {"answer": answer}
 
