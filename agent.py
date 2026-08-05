@@ -19,6 +19,7 @@ class ResearchState(TypedDict):
     verdict: str
     reason: str
     retry_count: int
+    total_cost: float
 
 system_prompt = """
 You are a critique agent. Evaluate the draft answer below.
@@ -82,13 +83,14 @@ def draft_node(state: ResearchState) -> dict:
 
     input_cost = (response.usage.prompt_tokens/1_000_000)*0.59
     output_cost = (response.usage.completion_tokens/1_000_000)*0.79
-    total_cost = input_cost + output_cost
+    prev_total_cost = state["total_cost"]
+    this_call_cost = input_cost + output_cost
 
     end = time.time()
     print(f"Time taken by Draft node: {end - start}")
-    print(f"Cost of Draft node: ${total_cost:.6f}")
+    print(f"Cost of Draft node: ${this_call_cost:.6f}")
 
-    return {"answer": answer}
+    return {"answer": answer, "total_cost": prev_total_cost+this_call_cost}
 
 #separation of concerns(merge_query, parse_critique)
 
@@ -119,17 +121,23 @@ def critique_node(state: ResearchState) -> dict:
     )
 
     raw_text = response.choices[0].message.content
-
     critique_dict = parse_critique(raw_text, state["query"])
+
+    input_cost = (response.usage.prompt_tokens/1_000_000)*0.59
+    output_cost = (response.usage.completion_tokens/1_000_000)*0.79
+    prev_total_cost = state["total_cost"]
+    this_call_cost = input_cost + output_cost
 
     end = time.time()
     print(f"Time taken by Critique node: {end - start}")
+    print(f"Cost of Critique node: ${this_call_cost:.6f}")
 
     return {
         "verdict": critique_dict["verdict"],
         "reason": critique_dict["reason"],
         "query": merge_query(critique_dict["ref_query"], state["query"]),
-        "retry_count": state["retry_count"] + 1
+        "retry_count": state["retry_count"] + 1,
+        "total_cost": prev_total_cost+this_call_cost
     }
 
 def should_retry(state: ResearchState) -> str:
@@ -168,7 +176,8 @@ if __name__ == "__main__":
         "answer": "",
         "verdict": "",
         "reason": "",
-        "retry_count": 0
+        "retry_count": 0,
+        "total_cost": 0.0
     }
     
     start = time.time()
@@ -183,3 +192,4 @@ if __name__ == "__main__":
 
     end = time.time()
     print(f"Total time taken: {end - start}")
+    print(f"Total cost: {accumulated_state['total_cost']:.6f}")
