@@ -3,6 +3,7 @@ from tavily import TavilyClient
 from dotenv import load_dotenv
 from typing import TypedDict
 from groq import Groq
+import time
 import json
 import os
 
@@ -50,13 +51,19 @@ Example 2:
 
 def research_node(state: ResearchState) -> dict:
 
+    start = time.time()
     query = state["query"]
     search_results = tavily_client.search(query=query)
     results = search_results["results"]
+
+    end = time.time()
+    print(f"Time taken by research node: {end - start}")
+
     return {"search": results}
 
 def draft_node(state: ResearchState) -> dict:
 
+    start = time.time()
     draft_system_prompt="""
     You are a research assistant, answer the question using the search results below.
     """
@@ -72,6 +79,10 @@ def draft_node(state: ResearchState) -> dict:
         messages=messages
     )
     answer = response.choices[0].message.content
+
+    end = time.time()
+    print(f"Time taken by draft node: {end - start}")
+
     return {"answer": answer}
 
 #separation of concerns(merge_query, parse_critique)
@@ -90,7 +101,8 @@ def parse_critique(raw_text, current_query): #helper function
         }
 
 def critique_node(state: ResearchState) -> dict:
-    
+
+    start = time.time()
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": f"Draft Answer: {state['answer']}\n\nSearch results: {state['search']}"}
@@ -104,6 +116,9 @@ def critique_node(state: ResearchState) -> dict:
     raw_text = response.choices[0].message.content
 
     critique_dict = parse_critique(raw_text, state["query"])
+
+    end = time.time()
+    print(f"Time taken by Critique node: {end - start}")
 
     return {
         "verdict": critique_dict["verdict"],
@@ -141,6 +156,7 @@ graph.add_conditional_edges(
 
 app = graph.compile()
 if __name__ == "__main__":
+
     initial_state = {
         "query": input("What do you want to search? "),
         "search": [],
@@ -150,6 +166,7 @@ if __name__ == "__main__":
         "retry_count": 0
     }
     
+    start = time.time()
     accumulated_state = initial_state.copy()
     
     for step in app.stream(initial_state):
@@ -158,3 +175,6 @@ if __name__ == "__main__":
             accumulated_state.update(node_output)
     
     print(f"\n\n{accumulated_state['answer']}")
+
+    end = time.time()
+    print(f"Total time taken: {end - start}")
