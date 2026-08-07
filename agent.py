@@ -1,4 +1,5 @@
 from langgraph.graph import StateGraph, END
+from langgraph.checkpoint.memory import MemorySaver
 from tavily import TavilyClient
 from dotenv import load_dotenv
 from typing import TypedDict
@@ -167,7 +168,9 @@ graph.add_conditional_edges(
     }
 )
 
-app = graph.compile()
+checkpointer = MemorySaver()
+app = graph.compile(checkpointer=checkpointer)
+
 if __name__ == "__main__":
 
     initial_state = {
@@ -182,8 +185,10 @@ if __name__ == "__main__":
     
     start = time.time()
     accumulated_state = initial_state.copy()
+
+    config = {"configurable": {"thread_id": "test_thread_1"}}
     
-    for step in app.stream(initial_state):
+    for step in app.stream(initial_state, config=config):
         print(step)
         for node_name, node_output in step.items():
             accumulated_state.update(node_output)
