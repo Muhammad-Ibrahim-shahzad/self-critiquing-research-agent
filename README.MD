@@ -84,16 +84,20 @@ Requests without a valid key receive a `401 Unauthorized` response. (If you're t
 **Request body:**
 ```json
 {
-  "query": "What is the capital of Pakistan?"
+  "query": "What is the capital of Pakistan?",
+  "thread_id": "optional-uuid-for-follow-up-questions"
 }
 ```
 
 **Response:**
 ```json
 {
-  "answer": "The capital of Pakistan is Islamabad."
+  "answer": "The capital of Pakistan is Islamabad.",
+  "thread_id": "a1b2c3d4-...-generated-if-not-provided"
 }
 ```
+
+**Conversation memory:** The agent supports multi-turn conversations. Omit `thread_id` on your first request — the API generates one and returns it. Pass that same `thread_id` on follow-up requests to ask context-dependent questions (e.g. "What is its population?" after asking about a country's capital). State is persisted via a LangGraph checkpointer (`MemorySaver`), and the research step builds context-aware search queries using the prior answer when one exists.
 
 Interactive API docs (Swagger UI) are available at [self-critiquing-research-agent-production.up.railway.app/docs](https://self-critiquing-research-agent-production.up.railway.app/docs) — you can test the endpoint directly from the browser (the docs page includes a field to enter your API key).
 
