@@ -26,17 +26,18 @@ def research(request: Request, body: QueryRequest, x_api_key: str = Header(...))
     try:
         if body.thread_id:
             thread_id = body.thread_id
+            initial_state = {"query": body.query}
         else:
             thread_id = str(uuid.uuid4())
-        initial_state = {
-            "query": body.query,
-            "search": [],
-            "answer": "",
-            "verdict": "",
-            "reason": "",
-            "retry_count": 0,
-            "total_cost": 0.0
-        }
+            initial_state = {
+                "query": body.query,
+                "search": [],
+                "answer": "",
+                "verdict": "",
+                "reason": "",
+                "retry_count": 0,
+                "total_cost": 0.0
+                }
 
         config = {"configurable": {"thread_id": thread_id}}
         result = agent_app.invoke(initial_state, config=config)

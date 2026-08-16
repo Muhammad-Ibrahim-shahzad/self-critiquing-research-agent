@@ -53,8 +53,14 @@ Example 2:
 
 def research_node(state: ResearchState) -> dict:
 
+    print(f"DEBUG - Full state at start: {state}")
+
     start = time.time()
-    query = state["query"]
+
+    if state["answer"]:
+        query = f"Previous context: {state['answer']}\n\nNew Question: {state['query']}"
+    else:
+        query = state["query"]
     search_results = tavily_client.search(query=query)
     results = search_results["results"]
 
