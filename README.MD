@@ -15,7 +15,7 @@ User Query → Research → Draft → Critique → [Good enough?]
 ```
 
 1. **Research** — Queries the [Tavily](https://tavily.com) search API for current, relevant information on the topic.
-2. **Draft** — An LLM (via [Groq](https://groq.com), `llama-3.3-70b-versatile`) writes an answer grounded in the retrieved search results.
+2. **Draft** — An LLM (via [Groq](https://groq.com), `openai/gpt-oss-120b`) writes an answer grounded in the retrieved search results.
 3. **Critique** — A second LLM call evaluates the draft against two criteria:
    - **Completeness** — Does the answer fully address the question?
    - **Groundedness** — Is every claim in the answer actually traceable back to the search results, or did the model hallucinate facts, numbers, or dates not present in the sources?
