@@ -83,7 +83,7 @@ def draft_node(state: ResearchState) -> dict:
     ]
 
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="openai/gpt-oss-120b",
         messages=messages
     )
     answer = response.choices[0].message.content
