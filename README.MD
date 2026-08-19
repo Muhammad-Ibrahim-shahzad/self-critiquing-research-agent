@@ -28,7 +28,7 @@ Standard RAG pipelines retrieve once and generate once, with no mechanism to cat
 ## Tech Stack
 
 - **LangGraph** — orchestrates the agentic control flow (state graph, conditional edges, looping)
-- **Groq API** (`llama-3.3-70b-versatile`) — drafting and critique LLM calls
+- **Groq API** (`openai/gpt-oss-120b`) — drafting and critique LLM calls
 - **Tavily API** — web search, purpose-built for LLM agents
 - **Python** (`json`, `TypedDict` for structured state and LLM output)
 
